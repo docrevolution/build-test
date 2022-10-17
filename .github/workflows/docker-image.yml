@@ -15,7 +15,7 @@ jobs:
   
   build_dev:
     runs-on: ubuntu-latest
-    if: (github.event.release.prerelease == true && github.event.release.tag_name =~ /^(v[0-9.]+-BETA\d{1,2}$)/+$)
+    if: (github.event.release.prerelease == true && github.event.release.tag_name =~ ^v[0-9.]+-BETA\d{1,2}+$)
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image (dev)
