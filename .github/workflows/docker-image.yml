@@ -15,8 +15,16 @@ jobs:
   
   build_dev:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, 'BETA') }}
+    if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image (dev)
       run: docker build . --file Dockerfile --tag ${{ github.event.repository.name }}:dev --tag ${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
+  
+  build_pre_release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image (pre-release)
+      run: docker build . --file Dockerfile --tag ${{ github.event.repository.name }}:pre-release --tag ${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
