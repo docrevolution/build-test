@@ -9,7 +9,7 @@ jobs:
 
   build_latest:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.action == 'released' }}
+    if: ${{ github.event.release.prerelease == false }}
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image (latest)
@@ -17,7 +17,7 @@ jobs:
   
   build_dev:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.action == 'prereleased' }}
+    if: ${{ github.event.release.prerelease == true }}
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image (dev)
