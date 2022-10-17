@@ -1,19 +1,17 @@
 name: Docker Image CI
 
 on:
-  workflow_dispatch:
   release:
     types: [released,prereleased]
 
 jobs:
-
   build_latest:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == false }}
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image (latest)
-      run: docker build . --file Dockerfile --tag ${{ github.repository }}:latest --tag ${{ github.repository }}:${{ github.event.release.tag_name }}
+      run: docker build . --file Dockerfile --tag ${{ github.event.repository.name }}:latest --tag ${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
   
   build_dev:
     runs-on: ubuntu-latest
@@ -21,4 +19,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image (dev)
-      run: docker build . --file Dockerfile --tag ${{ github.repository }}:dev --tag ${{ github.repository }}:${{ github.event.release.tag_name }}
+      run: docker build . --file Dockerfile --tag ${{ github.event.repository.name }}:dev --tag ${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
