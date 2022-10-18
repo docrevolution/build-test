@@ -3,28 +3,8 @@ name: Docker Image CI
 on:
   release:
     types: [released,prereleased]
-  workflow_call:
-    outputs:
-      registry:
-        description: "ECR registry"
-        value: ${{ jobs.configure_ecr.outputs.registry }}
 
 jobs:
-  configure_ecr:
-    runs-on: ubuntu-latest
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-    steps:
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-region: eu-west-1
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
   build_latest:
     needs: configure_ecr
     runs-on: ubuntu-latest
@@ -32,9 +12,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
     - name: Build the Docker image (latest)
       env:
-        REGISTRY: ${{ needs.configure_ecr.outputs.registry }}
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         REPOSITORY: ${{ github.event.repository.name }}
         TAG: ${{ github.event.release.tag_name }}
       run: |
