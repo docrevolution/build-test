@@ -30,7 +30,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build . --file Dockerfile --tag $REGISTRY/$REPOSITORY:latest --tag $REGISTRY/$REPOSITORY:${{ github.event.release.tag_name }}
-        docker push $REGISTRY/$REPOSITORY:latest $REGISTRY/$REPOSITORY:${{ github.event.release.tag_name }}
+        docker image push --all-tags $REGISTRY/$REPOSITORY
 
   build_dev:
     runs-on: ubuntu-latest
