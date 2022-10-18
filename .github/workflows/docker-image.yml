@@ -33,14 +33,46 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
     - name: Build the Docker image (dev)
-      run: docker build . --file Dockerfile --tag ${{ github.event.repository.full_name }}:dev --tag ${{ github.event.repository.full_name }}:${{ github.event.release.tag_name }}
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: ${{ github.event.repository.name }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        docker build . --file Dockerfile --tag $REGISTRY/$REPOSITORY:dev --tag $REGISTRY/$REPOSITORY:$TAG
+        docker image push --all-tags $REGISTRY/$REPOSITORY
 
   build_pre_release:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
     - name: Build the Docker image (pre-release)
-      run: docker build . --file Dockerfile --tag ${{ github.event.repository.full_name }}:pre-release --tag ${{ github.event.repository.full_name }}:${{ github.event.release.tag_name }}
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: ${{ github.event.repository.name }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        docker build . --file Dockerfile --tag $REGISTRY/$REPOSITORY:pre-release --tag $REGISTRY/$REPOSITORY:$TAG
+        docker image push --all-tags $REGISTRY/$REPOSITORY
