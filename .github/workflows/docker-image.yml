@@ -38,8 +38,8 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:latest,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:latest
+          cache-to: type=inline
 
   build_dev:
     runs-on: ubuntu-latest
@@ -98,5 +98,5 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:pre-release,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:pre-release
+          cache-to: type=inline
