@@ -17,23 +17,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+
       - name: Build the Docker image (latest)
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ github.event.repository.name }}
-          TAG: ${{ github.event.release.tag_name }}
-        run: |
-          docker build . --file Dockerfile --tag $REGISTRY/$REPOSITORY:latest --tag $REGISTRY/$REPOSITORY:$TAG
-          docker image push --all-tags $REGISTRY/$REPOSITORY
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:latest,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build_dev:
     runs-on: ubuntu-latest
@@ -56,23 +62,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push
+      - name: Build the Docker image (dev)
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:dev,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  #    - name: Build the Docker image (dev)
-  #      env:
-  #        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #        REPOSITORY: ${{ github.event.repository.name }}
-  #        TAG: ${{ github.event.release.tag_name }}
-  #      run: |
-  #        docker build . --file Dockerfile --tag $REGISTRY/$REPOSITORY:dev --tag $REGISTRY/$REPOSITORY:$TAG
-  #        docker image push --all-tags $REGISTRY/$REPOSITORY
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:buildcache
+          cache-to: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:buildcache,mode=max
 
   build_pre_release:
     runs-on: ubuntu-latest
@@ -80,20 +77,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+
       - name: Build the Docker image (pre-release)
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ github.event.repository.name }}
-          TAG: ${{ github.event.release.tag_name }}
-        run: |
-          docker build . --file Dockerfile --tag $REGISTRY/$REPOSITORY:pre-release --tag $REGISTRY/$REPOSITORY:$TAG
-          docker image push --all-tags $REGISTRY/$REPOSITORY
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:pre-release,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
