@@ -1,6 +1,7 @@
 name: Build and push Docker image to AWS ECR
 
 on:
+  workflow_call:
   release:
     types: [released,prereleased]
 
