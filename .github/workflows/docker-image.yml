@@ -62,8 +62,8 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:dev,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
-          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:buildcache
-          cache-to: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:buildcache,mode=max
+          cache-from: type=registry,ref=${{ github.repository }}:buildcache
+          cache-to: type=registry,ref=${{ github.repository }}:buildcache,mode=max
 
   #    - name: Build the Docker image (dev)
   #      env:
