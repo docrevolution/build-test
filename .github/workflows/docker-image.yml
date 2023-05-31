@@ -44,6 +44,8 @@ jobs:
   build_dev:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
+    env:
+      CDN_URL: "https://uploads.my-test.docrevolution.com/assets"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
