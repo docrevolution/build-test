@@ -14,8 +14,6 @@ jobs:
   build_latest:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == false }}
-    env:
-      CDN_URL: "https://cdn.docrevolution.nl/files"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -42,12 +40,12 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:latest,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
           cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:latest
           cache-to: type=inline
+          build-args: |
+            CDN_URL=https://cdn.docrevolution.nl/files
 
   build_dev:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
-    env:
-      CDN_URL: "https://uploads.my-test.docrevolution.com/assets"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -74,12 +72,12 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:dev,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
           cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:dev
           cache-to: type=inline
+          build-args: |
+            CDN_URL=https://uploads.my-test.docrevolution.com/assets
 
   build_pre_release:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
-    env:
-      CDN_URL: "https://cdn.docrevolution.nl/files"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -106,3 +104,5 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:pre-release,${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
           cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:pre-release
           cache-to: type=inline
+          build-args: |
+            CDN_URL=https://cdn.docrevolution.nl/files
