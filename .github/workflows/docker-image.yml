@@ -14,6 +14,8 @@ jobs:
   build_latest:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == false }}
+    env:
+      CDN_URL: "https://cdn.docrevolution.nl/files"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -76,6 +78,8 @@ jobs:
   build_pre_release:
     runs-on: ubuntu-latest
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
+    env:
+      CDN_URL: "https://cdn.docrevolution.nl/files"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
