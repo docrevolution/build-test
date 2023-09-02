@@ -48,10 +48,10 @@ jobs:
     if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.6.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2.10.0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -65,7 +65,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build the Docker image (dev)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v4.1.1
         with:
           context: .
           push: true
