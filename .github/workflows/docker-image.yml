@@ -13,7 +13,7 @@ on:
 jobs:
   build_latest:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease == false }}
+    if: ${{ github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-BETA') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.6.0
