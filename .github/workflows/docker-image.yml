@@ -119,6 +119,7 @@ jobs:
           cache-to: type=inline
           build-args: |
             CDN_URL=https://uploads.my-test.docrevolution.com/assets
+            AWS_ACCOUNT=189796657102
 
   build_pre_release:
     runs-on: ubuntu-latest
