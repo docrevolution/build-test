@@ -27,6 +27,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # 'fail-fast: false' zorgt dat de andere tags doorgaan als er één faalt
+      fail-fast: false
       matrix:
         include:
           - tag: latest
@@ -34,22 +36,25 @@ jobs:
             image_tag: latest
             cdn_url: ${{ inputs.cdn_url }}
           - tag: dev
-            condition: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
+            condition: ${{ github.event_name == 'release' && github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
             image_tag: dev
             cdn_url: ${{ inputs.cdn_url_dev }}
           - tag: pre-release
-            condition: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
+            condition: ${{ github.event_name == 'release' && github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
             image_tag: pre-release
             cdn_url: ${{ inputs.cdn_url }}
-    if: ${{ matrix.condition }}
+
     steps:
       - name: Checkout
+        if: ${{ matrix.condition }}
         uses: actions/checkout@v3.6.0
 
       - name: Set up Docker Buildx
+        if: ${{ matrix.condition }}
         uses: docker/setup-buildx-action@v2.10.0
 
       - name: Configure AWS credentials
+        if: ${{ matrix.condition }}
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-region: ${{ secrets.AWS_REGION_SHARED_SERVICES }}
@@ -57,12 +62,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_SHARED_SERVICES }}
 
       - name: Login to Amazon ECR
+        if: ${{ matrix.condition }}
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
       - name: Build and push Docker image
+        if: ${{ matrix.condition }}
         uses: docker/build-push-action@v4.1.1
         with:
           context: .
