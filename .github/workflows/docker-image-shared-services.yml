@@ -79,3 +79,4 @@ jobs:
           cache-to: type=inline
           build-args: |
             CDN_URL=${{ matrix.cdn_url }}
+            AWS_ACCOUNT="189796657102"
