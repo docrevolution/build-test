@@ -36,23 +36,23 @@ jobs:
           CDN="${{ inputs.cdn_url }}"
           
           if [[ "${{ inputs.trigger_latest }}" == "true" ]]; then
-          SHOULD_RUN=true
-          IMAGE_TAG="latest"
+            SHOULD_RUN=true
+            IMAGE_TAG="latest"
           elif [[ "${{ github.event_name }}" == "release" ]]; then
-          TAG_NAME="${{ github.event.release.tag_name }}"
-          IS_PRERELEASE="${{ github.event.release.prerelease }}"
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            IS_PRERELEASE="${{ github.event.release.prerelease }}"
           
-          if [[ "$IS_PRERELEASE" == "false" && ! "$TAG_NAME" =~ -BETA ]]; then
-           SHOULD_RUN=true
-           IMAGE_TAG="latest"
-          elif [[ "$IS_PRERELEASE" == "true" && "$TAG_NAME" =~ -BETA ]]; then
-           SHOULD_RUN=true
-           IMAGE_TAG="dev"
-           CDN="${{ inputs.cdn_url_dev }}"
-          elif [[ "$IS_PRERELEASE" == "true" && "$TAG_NAME" =~ -RC ]]; then
-           SHOULD_RUN=true
-           IMAGE_TAG="pre-release"
-          fi
+            if [[ "$IS_PRERELEASE" == "false" && ! "$TAG_NAME" =~ -BETA ]]; then
+              SHOULD_RUN=true
+              IMAGE_TAG="latest"
+            elif [[ "$IS_PRERELEASE" == "true" && "$TAG_NAME" =~ -BETA ]]; then
+              SHOULD_RUN=true
+              IMAGE_TAG="dev"
+              CDN="${{ inputs.cdn_url_dev }}"
+            elif [[ "$IS_PRERELEASE" == "true" && "$TAG_NAME" =~ -RC ]]; then
+              SHOULD_RUN=true
+              IMAGE_TAG="pre-release"
+            fi
           fi
           
           echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
