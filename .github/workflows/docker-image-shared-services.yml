@@ -26,35 +26,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      # 'fail-fast: false' zorgt dat de andere tags doorgaan als er één faalt
-      fail-fast: false
-      matrix:
-        include:
-          - tag: latest
-            condition: ${{ inputs.trigger_latest == true || (github.event_name == 'release' && github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-BETA')) }}
-            image_tag: latest
-            cdn_url: ${{ inputs.cdn_url }}
-          - tag: dev
-            condition: ${{ github.event_name == 'release' && github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
-            image_tag: dev
-            cdn_url: ${{ inputs.cdn_url_dev }}
-          - tag: pre-release
-            condition: ${{ github.event_name == 'release' && github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
-            image_tag: pre-release
-            cdn_url: ${{ inputs.cdn_url }}
-
     steps:
+      - name: Determine Tags and Config
+        id: prepare
+        run: |
+          # Default waarden
+          SHOULD_RUN=false
+          IMAGE_TAG="latest"
+          CDN="${{ inputs.cdn_url }}"
+          
+          if [[ "${{ inputs.trigger_latest }}" == "true" ]]; then
+          SHOULD_RUN=true
+          IMAGE_TAG="latest"
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          IS_PRERELEASE="${{ github.event.release.prerelease }}"
+          
+          if [[ "$IS_PRERELEASE" == "false" && ! "$TAG_NAME" =~ -BETA ]]; then
+           SHOULD_RUN=true
+           IMAGE_TAG="latest"
+          elif [[ "$IS_PRERELEASE" == "true" && "$TAG_NAME" =~ -BETA ]]; then
+           SHOULD_RUN=true
+           IMAGE_TAG="dev"
+           CDN="${{ inputs.cdn_url_dev }}"
+          elif [[ "$IS_PRERELEASE" == "true" && "$TAG_NAME" =~ -RC ]]; then
+           SHOULD_RUN=true
+           IMAGE_TAG="pre-release"
+          fi
+          fi
+          
+          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "cdn_url=$CDN" >> $GITHUB_OUTPUT
+
       - name: Checkout
-        if: ${{ matrix.condition }}
+        if: steps.prepare.outputs.should_run == 'true'
         uses: actions/checkout@v3.6.0
 
       - name: Set up Docker Buildx
-        if: ${{ matrix.condition }}
+        if: steps.prepare.outputs.should_run == 'true'
         uses: docker/setup-buildx-action@v2.10.0
 
       - name: Configure AWS credentials
-        if: ${{ matrix.condition }}
+        if: steps.prepare.outputs.should_run == 'true'
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-region: ${{ secrets.AWS_REGION_SHARED_SERVICES }}
@@ -62,21 +76,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_SHARED_SERVICES }}
 
       - name: Login to Amazon ECR
-        if: ${{ matrix.condition }}
+        if: steps.prepare.outputs.should_run == 'true'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
       - name: Build and push Docker image
-        if: ${{ matrix.condition }}
+        if: steps.prepare.outputs.should_run == 'true'
         uses: docker/build-push-action@v4.1.1
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ matrix.image_tag }}
-          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ matrix.image_tag }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ steps.prepare.outputs.image_tag }}
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}:${{ steps.prepare.outputs.image_tag }}
           cache-to: type=inline
           build-args: |
-            CDN_URL=${{ matrix.cdn_url }}
+            CDN_URL=${{ steps.prepare.outputs.cdn_url }}
             AWS_ACCOUNT="189796657102"
