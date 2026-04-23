@@ -93,4 +93,4 @@ jobs:
           cache-to: type=inline
           build-args: |
             CDN_URL=${{ steps.prepare.outputs.cdn_url }}
-            AWS_ACCOUNT="189796657102"
+            AWS_ACCOUNT=189796657102
