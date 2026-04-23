@@ -2,6 +2,12 @@ name: Build and push Docker image to AWS ECR on shared-services
 
 on:
   workflow_call:
+    inputs:
+      # Voeg een optionele input toe om de build te forceren
+      trigger_latest:
+        type: boolean
+        default: false
+        required: false
     secrets:
       AWS_REGION_SHARED_SERVICES:
         required: true
@@ -13,7 +19,9 @@ on:
 jobs:
   build_latest:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-BETA') }}
+    if: |
+      inputs.trigger_latest == true || 
+      (github.event_name == 'release' && github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-BETA'))
     steps:
       - name: Checkout
         uses: actions/checkout@v3.6.0
