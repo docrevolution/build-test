@@ -19,7 +19,7 @@ on:
 jobs:
   build_latest:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-BETA') }}
+    if: ${{ github.event_name == 'release' && github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-BETA') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.6.0
@@ -53,7 +53,7 @@ jobs:
 
   build_dev:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
+    if: ${{ github.event_name == 'release' && github.event.release.prerelease == true && contains(github.event.release.tag_name, '-BETA') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.6.0
@@ -87,7 +87,7 @@ jobs:
 
   build_pre_release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
+    if: ${{ github.event_name == 'release' && github.event.release.prerelease == true && contains(github.event.release.tag_name, '-RC') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.6.0
